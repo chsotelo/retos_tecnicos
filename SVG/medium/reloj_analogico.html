@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reloj Analógico</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .svg-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: auto;
+      min-height: 220px;
+      margin: auto;
+    }
+
+    svg {
+      width: 300px;
+      height: 300px;
+    }
+
+    svg #clock {
+      fill: rgb(206, 206, 206);
+      stroke: white;
+      stroke-width: 2;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="svg-container">
+    <svg id="clock-svg" width="300" height="300" viewBox="0 0 300 300">
+      <circle id="clock" cy="150" cx="150" r="148" fill="black" />
+      <circle cy="150" cx="150" r="3" fill="white" stroke="white" stroke-width="6" />
+      <symbol id="line-basic">
+        <line x1="150" y1="20" x2="150" y2="35" stroke="inherit" stroke-width="2" />
+      </symbol>
+      <g id="clock-marks"></g>
+
+      <symbol id="time-mark">
+        <line x1="150" y1="150" x2="150" y2="50" stroke="inherit" stroke-width="inherit" />
+      </symbol>
+      <g id="marks"></g>
+    </svg>
+  </section>
+  <picture>
+    <img src="./assets/reloj_analogico.png" alt="Img">
+  </picture>
+  <script>
+    const $ = id => document.getElementById(id);
+
+    const createSVGElement = (tag, attributes = {}) => {
+      const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      for (const [key, value] of Object.entries(attributes)) {
+        element.setAttribute(key, value);
+      }
+      return element;
+    };
+
+    const $clockMarks = $("clock-marks");
+    const rotateGrade = Array.from({ length: 30 }, (_, i) => i * 12);
+
+    rotateGrade.forEach((angle, index) => {
+      const isRedMark = index % 15 === 0; 
+      const useElement = createSVGElement("use", {
+        href: "#line-basic",
+        transform: `rotate(${angle} 150 150)`,
+        ...(isRedMark ? { stroke: "black" } : { stroke: "gray" }),
+      });
+
+      $clockMarks.appendChild(useElement);
+    });
+
+    const executeClock = () => {
+      const $clockLines = $("marks");
+      const intervalId = setInterval(() => {
+        const currentDate = new Date();
+        const hours = currentDate.getHours() % 12;  
+        const minutes = currentDate.getMinutes();
+        const seconds = currentDate.getSeconds();
+
+        $clockLines.innerHTML = '';
+
+        const hourRotation = (hours + minutes / 60) * 30;  
+        const hourHand = createSVGElement("use", {
+          href: "#time-mark",
+          stroke: "black",
+          fill: "black",
+          transform: `rotate(${hourRotation} 150 150)`,
+          "stroke-width": "3"
+        });
+        $clockLines.appendChild(hourHand);
+
+        const minuteRotation = minutes * 6;  
+        const minuteHand = createSVGElement("use", {
+          href: "#time-mark",
+          stroke: "gray",
+          fill: "gray",
+          transform: `rotate(${minuteRotation} 150 150)`,
+          "stroke-width": "2"
+
+        });
+        $clockLines.appendChild(minuteHand);
+
+        const secondRotation = seconds * 6;  
+        const secondHand = createSVGElement("use", {
+          href: "#time-mark",
+          stroke: "red",
+          fill: "red",
+          transform: `rotate(${secondRotation} 150 150)`,
+          "stroke-width": "1"
+
+        });
+        $clockLines.appendChild(secondHand);
+
+      }, 1000);  
+    };
+
+    executeClock();
+  </script>
+</body>
+
+</html>
