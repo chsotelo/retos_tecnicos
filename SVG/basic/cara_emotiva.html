@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cara emotiva</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    picture {
+      display: flex;
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .svg-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: auto;
+      min-height: 500px;
+      margin: auto;
+    }
+
+    /* SVG */
+    svg {
+      width: 200px;
+      height: 200px;
+    }
+
+    path{
+      transition: all 0.3s;
+    }
+
+
+  </style>
+</head>
+<body>
+  <section class="svg-container">
+    <svg width="200" height="200" onclick="changeFace()">
+      <symbol id="eye">
+        <circle id="sclera" cx="12" cy="12" r="12" fill="gray" />
+        <circle id="iris" cx="12" cy="12" r="5" fill="black" />
+      </symbol>
+      <circle id="face" cx="100" cy="100" r="100" fill="#FFDBAC" />
+      <use id="eye-l" href="#eye" x="120" y="50" />
+      <use id="eye-r" href="#eye" x="60" y="50" />
+      <path id="mouth" d="M60 140 Q100 190, 140 140" stroke="black" stroke-width="0" fill="red" />
+    </svg>
+  </section>
+  <picture>
+    <img src="./assets/cara_emotiva.png" alt="Img">
+  </picture>
+    <script>
+
+      let stateIdx = 0;
+      const d_sad = "M60 140 Q100 110, 140 140";  
+      const d_happy = "M60 140 Q100 170, 140 140"; 
+      const d_surprise = "M60 140 Q100 190, 140 140";  
+      const circleAtribuits = ['cx', "cy", "r", "r2", "cy2"];
+      const eye_sad = ["12", "0", "12", "6", "0"];
+      const eye_happy = ["12", "12", "12", "3", "12"];
+      const eye_surprise = ["15", "15", "15", "5", "15"];
+      const states = ["happy", "sad", "surprise"];
+
+      const $ = id => document.getElementById(id);
+
+      const svgElement = document.querySelector("svg");
+      console.log(svgElement);
+
+      const $face = $("face");
+      const $sclera = $("sclera");
+      const $iris = $("iris");
+      const $mouth = $("mouth");
+
+      const eyeValuesChange = (valuesArray, atrArray) => {
+        controlStateIdx()
+        atrArray.forEach((atr, index) => {
+          if (atr === "r2") {
+            $iris.setAttribute("r", valuesArray[index])
+            return;
+          } else if (atr === "cy2") {
+            $iris.setAttribute("cy", valuesArray[index])
+            return;
+          }
+          $sclera.setAttribute(atr, valuesArray[index])
+        })
+      }
+
+      const changeHappy = () => {
+        if (!$face || !$sclera || !$iris || !$mouth) {
+          return;
+        }
+        $face.setAttribute("fill", "#E2B97F")
+        $mouth.setAttribute("d", d_happy)
+        $mouth.setAttribute("fill", "none")
+        $mouth.setAttribute("stroke-width", "3")
+        eyeValuesChange(eye_happy, circleAtribuits)
+      }
+
+      const changeSad = () => {
+        if (!$face || !$sclera || !$iris || !$mouth) {
+          return;
+        }
+        $face.setAttribute("fill", "#FFDBAC")
+        $mouth.setAttribute("d", d_sad)
+        $mouth.setAttribute("fill", "none")
+        $mouth.setAttribute("stroke-width", "3")
+        $iris.setAttribute("cy", "0")
+        eyeValuesChange(eye_sad, circleAtribuits)
+      }
+
+      const changeSurprise = () => {
+        if (!$face || !$sclera || !$iris || !$mouth) {
+          return;
+        }
+        $face.setAttribute("fill", "#FFDBAC")
+        $mouth.setAttribute("d", d_surprise)
+        $mouth.setAttribute("fill", "red")
+        $mouth.setAttribute("stroke-width", "0")
+        eyeValuesChange(eye_surprise, circleAtribuits)
+      }
+
+      const controlStateIdx = () => {
+        if (stateIdx === states.length - 1) {
+          stateIdx = 0
+        } else {
+          stateIdx++;
+        }
+      }
+
+      const changeFace = () => {
+        const key = states[stateIdx]
+        switch (key) {
+          case "happy":
+            changeHappy()
+            break;
+          case "sad":
+            changeSad()
+            break;
+          case "surprise":
+            changeSurprise()
+            break;
+          default:
+            changeHappy()
+            break;
+        }
+      }
+    </script>
+</body>
+
+</html>
