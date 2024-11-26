@@ -27,14 +27,34 @@
       justify-content: center;
       align-items: center;
       height: auto;
-      min-height: 500px;
+      min-height: 220px;
       margin: auto;
     }
 
     /* SVG */
     svg {
-      width: 200px;
+      width: 80px;
       height: 200px;
+    }
+
+    svg rect {
+      fill: black;
+    }
+
+    #light-g{
+      fill: #ace9ac;
+    }
+    
+    #light-y{
+      fill: #ebeb91;
+    }
+    
+    #light-r {
+      fill: #f09898;
+    }
+
+    use:hover {
+      cursor: pointer;
     }
 
   </style>
@@ -42,26 +62,64 @@
 
 <body>
   <section class="svg-container">
-    <svg width="200" height="200" >
-      <symbol id="light">
-        <circle cx="12" cy="12" r="12" fill="gray" />
-      </symbol>
+    <svg width="80" height="200" viewBox="0 0 80 200" >
+      <defs >
+        <g id="light" >
+          <circle class="basic-light" cx="20" cy="20" r="20" style="fill:inherit" />
+        </g>
+      </defs>
+      <rect id="traffic-light" width="80" height="200"  fill="black" />
+      <use id="light-r" href="#light" x="20" y="20" onclick="changeIterator(0)"/>
+      <use id="light-y" href="#light" x="20" y="80" onclick="changeIterator(1)"/>
+      <use id="light-g" href="#light" x="20" y="140" onclick="changeIterator(2)" />
     </svg>
   </section>
   <picture>
     <img src="./assets/semaforo_interactivo.png" alt="Img">
   </picture>
   <script>
-    let stateIdx = 0;
-    const $ = id => document.getElementById(id);
-    
-    const controlStateIdx = () => {
-        if (stateIdx === states.length - 1) {
-          stateIdx = 0
-        } else {
-          stateIdx++;
-        }
-      }
+  let iterator = 0;
+  let timeoutId = null; 
+
+  const changeIterator = (value) => {
+    iterator = value;
+    clearTimeout(timeoutId); 
+    main(); 
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  const colors = [
+    { active: "#ff0000", inactive: "#f09898", id: "light-r", time: 5000 },
+    { active: "#ffff00", inactive: "#ebeb91", id: "light-y", time: 2000 },
+    { active: "#00ff00", inactive: "#ace9ac", id: "light-g", time: 5000 },
+  ];
+
+  const changeColor = (currentColor) => {
+    colors.forEach(color => {
+      const element = $(color.id);
+      if (element) element.style.fill = color.inactive;
+    });
+
+    const activeElement = $(currentColor.id);
+    if (activeElement) activeElement.style.fill = currentColor.active;
+  };
+
+  const controlIterator = () => {
+    iterator = (iterator + 1) % colors.length; 
+  };
+
+  const main = () => {
+    const currentColor = colors[iterator];
+    changeColor(currentColor);
+
+    timeoutId = setTimeout(() => {
+      controlIterator();
+      main();
+    }, currentColor.time);
+  };
+
+  main();
 
   </script>
 </body>
