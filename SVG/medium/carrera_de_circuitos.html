@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrera de circuitos</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .svg-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: auto;
+      min-height: 220px;
+      margin: auto;
+    }
+
+    svg {
+      width: 100%;
+      height: 300px;
+      padding: 12px;
+    }
+
+    #one{
+      fill: #ffe7e7;
+    }
+
+    #two{
+      fill: #d1d1d1;
+    }
+
+    #three{
+      fill: #b1ecec;
+    }
+
+    #four{
+      fill: #ffbdff;
+    }
+
+    #five{
+      fill: #a8bcff
+    }
+  </style>
+</head>
+
+<body>
+  <section class="svg-container">
+    <svg  width="800" height="250" viewBox="0 0 800 300">
+      <g id="circuit">
+        <rect id="one" width="800" height="50" />
+        <rect id="two" width="800" height="50" y="50"  />
+        <rect id="three" width="800" height="50" y="100"/>
+        <rect id="four" width="800" height="50" y="150"/>
+        <rect id="five" width="800" height="50" y="200"/>
+      </g>
+    </svg>
+  </section>
+  <picture>
+    <img src="./assets/carrera_de_circuitos.png" alt="Img">
+  </picture>
+  <script>
+    const $ = id => document.getElementById(id);
+
+    const createSVGElement = (tag, attributes = {}) => {
+      const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      for (const [key, value] of Object.entries(attributes)) {
+        element.setAttribute(key, value);
+      }
+      return element;
+    };
+
+  </script>
+</body>
+
+</html>
