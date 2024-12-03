@@ -17,67 +17,162 @@
 
     .svg-container {
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: auto;
-      min-height: 220px;
       margin: auto;
-    }
-
-    svg {
-      width: 100%;
-      height: 300px;
       padding: 12px;
     }
 
-    #one{
-      fill: #ffe7e7;
-    }
-
-    #two{
-      fill: #d1d1d1;
-    }
-
-    #three{
-      fill: #b1ecec;
-    }
-
-    #four{
-      fill: #ffbdff;
-    }
-
-    #five{
-      fill: #a8bcff
+    svg {
+      padding: 20px;
     }
   </style>
 </head>
 
 <body>
   <section class="svg-container">
-    <svg  width="800" height="250" viewBox="0 0 800 300">
-      <g id="circuit">
-        <rect id="one" width="800" height="50" />
-        <rect id="two" width="800" height="50" y="50"  />
-        <rect id="three" width="800" height="50" y="100"/>
-        <rect id="four" width="800" height="50" y="150"/>
-        <rect id="five" width="800" height="50" y="200"/>
-      </g>
+    <svg id="racing-field" width="800">
+      <defs>
+        <g id="runner">
+          <rect width="100%" stroke="black" stroke-width="1" fill="none" />
+          <circle cx="25" cy="25" r="24" />
+        </g>
+      </defs>
     </svg>
+    <div class="buttons">
+      <button id="button-start" onclick="startRun()">Empezar</button>
+      <button id="button-start" onclick="reset()">Reiniciar</button>
+    </div>
   </section>
-  <picture>
+  <picture>s
     <img src="./assets/carrera_de_circuitos.png" alt="Img">
   </picture>
   <script>
+    //racing-field
+    const racingfieldWidth = 800
+
+    //rect 
+    const heigthRect = 50;
+    const strokeWidth = 4;
+
+    //velocity
+    const minVelocity = 10;
+    const maxVelocity = 50;
+    const randomVelocity = () => {
+      return (Math.floor(Math.random() * (maxVelocity - minVelocity + 1)) + minVelocity)
+    }
+
+    let runners = [
+      {
+        fill: "red", velocity: randomVelocity()
+      },
+      {
+        fill: "blue", velocity: randomVelocity()
+      }, {
+        fill: "green", velocity: randomVelocity()
+      }, {
+        fill: "orange", velocity: randomVelocity()
+      }, {
+        fill: "purple", velocity: randomVelocity()
+      }
+    ]
+
     const $ = id => document.getElementById(id);
 
-    const createSVGElement = (tag, attributes = {}) => {
-      const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
-      for (const [key, value] of Object.entries(attributes)) {
-        element.setAttribute(key, value);
-      }
-      return element;
-    };
+    const $runner = $("runner");
+    const $racingField = $("racing-field")
+    const $buttonStart = $("button-start")
+    $racingField.setAttribute("height", runners?.length * heigthRect)
+    $racingField.setAttribute("width", racingfieldWidth)
 
+    runners.forEach(({ fill, velocity }, index) => {
+      const yOffset = index * heigthRect;
+
+      const $clone = $runner.cloneNode(true);
+      const $circle = $clone.querySelector('circle');
+      const $rect = $clone.querySelector("rect");
+
+      $rect.setAttribute("height", heigthRect);
+      $rect.setAttribute("stroke-width", strokeWidth);
+      $circle.setAttribute("fill", fill);
+      $circle.setAttribute("r", heigthRect / 2 - strokeWidth / 2);
+      $circle.setAttribute("cy", heigthRect / 2);
+      $circle.setAttribute("cx", heigthRect / 2);
+
+      $clone.setAttribute("id", `runner-${index}`)
+      $clone.setAttribute('transform', `translate(0, ${yOffset})`);
+
+      $racingField.appendChild($clone)
+    })
+
+
+    const startRun = () => {
+      const d = racingfieldWidth - ((heigthRect / 2 - strokeWidth / 2))
+
+      let nodes = []
+      $racingField.childNodes.forEach((node) => {
+        if (node.nodeName === "g") {
+          nodes.push(node)
+        }
+      })
+      console.log(runners);
+
+      runners.forEach(({ velocity }, index) => {
+        executeRunner(nodes[index], velocity, d)
+      })
+
+    }
+
+    const reset = () => {
+      runners = runners.map((item) => ({
+        ...item,
+        velocity: randomVelocity()
+
+      }))
+      $racingField.childNodes.forEach((node) => {
+        if (node.nodeName === "g") {
+          node.querySelector("circle").setAttribute("cx", heigthRect / 2);
+        }
+      })
+    }
+
+
+    const executeRunner = (node, velocity, d) => {
+      let circle = node.querySelector("circle")
+
+      const initialDistance = parseFloat(circle.getAttribute("cx")) || 0;
+      const totalDistance = d - initialDistance;
+
+      const time = totalDistance / velocity;
+      if (totalDistance <= 0) return;
+      const startTime = performance.now();
+
+      const step = () => {
+        const elapsedTime = (performance.now() - startTime) / 1000;
+        const progress = Math.min(elapsedTime / time, 1);
+        const newDistance = initialDistance + totalDistance * progress;
+
+        circle.setAttribute("cx", newDistance);
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          console.log("Animación completada.", { velocity });
+        }
+      };
+      step();
+    }
+    // function noHaceNada() {
+    //   console.log("La función se ejecutó");
+    // }
+
+    // function animacion() {
+    //   requestAnimationFrame(noHaceNada);
+    // }
+
+    // animacion()
   </script>
 </body>
 
