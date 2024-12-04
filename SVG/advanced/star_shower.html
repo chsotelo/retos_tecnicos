@@ -65,14 +65,14 @@
           stars.set(idClone, {
             velocity,
             x: currentX,
-            y: yMin
+            y: yMin, rotate
           })
           console.log(rotate);
           const scaleValue = randomNumber(0.1, 0.05);
           const $cloneStar = $star.cloneNode(true)
           $cloneStar.setAttribute("id", idClone)
           $cloneStar.setAttribute("opacity", transparent)
-          $cloneStar.setAttribute("transform", `translate(${currentX}, ${yPosition}) scale(${scaleValue}) `)
+          $cloneStar.setAttribute("transform", `translate(${currentX}, ${yPosition}) scale(${scaleValue})`)
           $sky.appendChild($cloneStar)
           velocity = randomNumber(0.3, 0.1)
         })
@@ -87,6 +87,8 @@
     }
 
     const createStar = () => {
+      console.log(stars);
+
       start(true, 1, true)
     }
 
@@ -124,9 +126,10 @@
     function updateStars() {
       const styles = getComputedStyle($sky);
       const distance = parseFloat(styles.height) - aditionalY;
+      const rangeX = 500;
       stars.forEach((data, id) => {
         const $currentStar = $(id);
-        const { velocity, y } = data || {};
+        const { velocity, y, rotate } = data || {};
         const ctm = $currentStar.getCTM();
         const currentX = ctm.e;
         const currentY = ctm.f;
@@ -134,9 +137,14 @@
 
         if (currentY <= distance) {
           $currentStar.setAttribute("transform", `translate(${currentX}, ${currentY + velocity}) scale(${scaleValue})`)
+          if ((currentY + velocity) >= rangeX) {
+            const currentOpacity = $currentStar.getAttribute("opacity")
+            currentOpacity >= 0 ? $currentStar.setAttribute("opacity", Number(currentOpacity) - 0.001) : deleteStar($currentStar, id)
+
+
+          }
         } else {
-          $currentStar.remove();
-          stars.delete(id);
+          deleteStar($currentStar, id)
         }
       });
 
@@ -146,6 +154,10 @@
 
     requestAnimationFrame(updateStars);
 
+    const deleteStar = (node, starId) => {
+      node.remove()
+      stars.delete(starId)
+    }
 
     start()
   </script>
