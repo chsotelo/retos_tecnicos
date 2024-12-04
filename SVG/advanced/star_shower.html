@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lluvia de estrellas</title>
+</head>
+<style>
+  body {
+    min-height: 100vh;
+  }
+
+  svg {
+    height: 100vh;
+    width: 100%;
+  }
+</style>
+
+<body>
+  <svg id="sky" style="background: linear-gradient(to bottom, #001D3D, #003566);">
+    <defs>
+      <g id="star" transform="translate(1050, 0) scale(0.2)">
+        <polygon points="150,25 179,111 269,111 197,165 
+                           223,251 150,200 77,251 103,165 
+                           31,111 121,111" style="fill: goldenrod;" />
+      </g>
+    </defs>
+  </svg>
+
+
+
+  <script>
+
+    const xMin = -30;
+    const yMin = -90;
+
+    const aditionalY = yMin * 2;
+    const aditionalX = xMin * 2;
+    const stars = new Map();
+    const $ = id => document.getElementById(id);
+
+
+    const $sky = $("sky")
+    const $star = $("star")
+    const randomNumber = (max, min) => Math.random() * (max + min) + min;
+
+
+    const start = (isControled = false, initialQuantity = 1, randomY = false) => {
+      let time = 4000;
+
+      let quantity = initialQuantity || parseInt(randomNumber(2, 1))
+      let velocity = randomNumber(0.3, 0.1)
+
+      const execute = () => {
+        Array.from({ length: quantity }).forEach((_, index) => {
+          let rotate = parseInt(randomNumber(45, 1))
+          const transparent = randomNumber(1, 0.1)
+          const styles = getComputedStyle($sky);
+          const xMax = parseFloat(styles.width) + (aditionalX / 2);
+          const yMax = parseFloat(styles.height) + (aditionalY / 2);
+          const yPosition = randomY ? randomNumber(yMax, yMin) : yMin;
+          const currentX = randomNumber(xMax, xMin);
+          const idClone = `${String(randomNumber(xMax, xMin))}-${index}`
+          stars.set(idClone, {
+            velocity,
+            x: currentX,
+            y: yMin
+          })
+          console.log(rotate);
+          const scaleValue = randomNumber(0.1, 0.05);
+          const $cloneStar = $star.cloneNode(true)
+          $cloneStar.setAttribute("id", idClone)
+          $cloneStar.setAttribute("opacity", transparent)
+          $cloneStar.setAttribute("transform", `translate(${currentX}, ${yPosition}) scale(${scaleValue}) `)
+          $sky.appendChild($cloneStar)
+          velocity = randomNumber(0.3, 0.1)
+        })
+        quantity = parseInt(randomNumber(2, 1))
+        time = parseInt(randomNumber(10000, 5000))
+
+        if (!isControled) {
+          setTimeout(execute, time)
+        }
+      }
+      execute()
+    }
+
+    const createStar = () => {
+      start(true, 1, true)
+    }
+
+    $sky.addEventListener("click", createStar)
+
+    /* CON SETINTERVAL */
+    // setInterval(() => {
+    //   const styles = getComputedStyle($sky);
+    //   const distance = parseFloat(styles.height) - aditionalY;
+
+
+    //   stars.forEach((data, id) => {
+    //     const $currentStar = $(id);
+
+    //     const { velocity, y } = data || {};
+    //     const ctm = $currentStar.getCTM();
+    //     const currentX = ctm.e;
+    //     const currentY = ctm.f;
+    //     const scaleValue = ctm.a
+
+
+    //     if (currentY <= distance) {
+    //       $currentStar.setAttribute("transform", `translate(${currentX}, ${currentY + velocity}) scale(${scaleValue})`)
+    //     } else {
+    //       $currentStar.remove()
+    //       stars.delete(id)
+    //     }
+
+    //   })
+
+    //   console.log(stars.size);
+
+    // }, 40)
+
+    function updateStars() {
+      const styles = getComputedStyle($sky);
+      const distance = parseFloat(styles.height) - aditionalY;
+      stars.forEach((data, id) => {
+        const $currentStar = $(id);
+        const { velocity, y } = data || {};
+        const ctm = $currentStar.getCTM();
+        const currentX = ctm.e;
+        const currentY = ctm.f;
+        const scaleValue = ctm.a;
+
+        if (currentY <= distance) {
+          $currentStar.setAttribute("transform", `translate(${currentX}, ${currentY + velocity}) scale(${scaleValue})`)
+        } else {
+          $currentStar.remove();
+          stars.delete(id);
+        }
+      });
+
+      console.log(stars.size);
+      requestAnimationFrame(updateStars);
+    }
+
+    requestAnimationFrame(updateStars);
+
+
+    start()
+  </script>
+
+</body>
+
+</html>

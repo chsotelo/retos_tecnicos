@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrera de circuitos</title>
+  <style>
+    /* Estilos generales aquí */
+  </style>
+</head>
+
+<body>
+  <my-race></my-race>
+  <my-race></my-race>
+  <my-race></my-race>
+
+  <script>
+    class MyRace extends HTMLElement {
+      constructor() {
+        super();
+        // Crear un shadow DOM para encapsular el estilo y el contenido
+        this.attachShadow({ mode: 'open' });
+
+        // Contenido del Custom Element
+        this.shadowRoot.innerHTML = `
+          <style>
+            /* Estilos específicos del custom element */
+            body {
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+              margin: 0;
+            }
+            .svg-container {
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              height: auto;
+              margin: auto;
+              padding: 12px;
+            }
+            svg {
+              padding: 20px;
+            }
+          </style>
+          <section class="svg-container">
+            <svg id="racing-field" width="800">
+              <defs>
+                <g id="runner">
+                  <rect width="100%" stroke="black" stroke-width="1" fill="none" />
+                  <circle cx="25" cy="25" r="24" />
+                </g>
+              </defs>
+            </svg>
+            <div class="buttons">
+              <button id="button-start">Empezar</button>
+              <button id="button-reset">Reiniciar</button>
+            </div>
+          </section>
+        `;
+
+        this.heigthRect = 50;
+        this.strokeWidth = 4;
+        this.racingfieldWidth = 800;
+
+        this.minVelocity = 10;
+        this.maxVelocity = 50;
+        this.runners = [
+          { fill: "red", velocity: this.randomVelocity() },
+          { fill: "blue", velocity: this.randomVelocity() },
+          { fill: "green", velocity: this.randomVelocity() },
+          { fill: "orange", velocity: this.randomVelocity() },
+          { fill: "purple", velocity: this.randomVelocity() }
+        ];
+
+        this.setupRace();
+      }
+
+      connectedCallback() {
+        // Vincula los botones con las funciones
+        this.shadowRoot.querySelector("#button-start").addEventListener("click", () => this.startRun());
+        this.shadowRoot.querySelector("#button-reset").addEventListener("click", () => this.reset());
+      }
+
+      randomVelocity() {
+        return Math.floor(Math.random() * (this.maxVelocity - this.minVelocity + 1)) + this.minVelocity;
+      }
+
+      setupRace() {
+        const $racingField = this.shadowRoot.querySelector("#racing-field");
+        $racingField.setAttribute("height", this.runners.length * this.heigthRect);
+        $racingField.setAttribute("width", this.racingfieldWidth);
+
+        this.runners.forEach(({ fill, velocity }, index) => {
+          const yOffset = index * this.heigthRect;
+          const $clone = this.shadowRoot.querySelector("#runner").cloneNode(true);
+          const $circle = $clone.querySelector('circle');
+          const $rect = $clone.querySelector("rect");
+
+          $rect.setAttribute("height", this.heigthRect);
+          $rect.setAttribute("stroke-width", this.strokeWidth);
+          $circle.setAttribute("fill", fill);
+          $circle.setAttribute("r", this.heigthRect / 2 - this.strokeWidth / 2);
+          $circle.setAttribute("cy", this.heigthRect / 2);
+          $circle.setAttribute("cx", this.heigthRect / 2);
+
+          $clone.setAttribute("id", `runner-${index}`);
+          $clone.setAttribute('transform', `translate(0, ${yOffset})`);
+
+          $racingField.appendChild($clone);
+        });
+      }
+
+      startRun() {
+        const d = this.racingfieldWidth - (this.heigthRect / 2 - this.strokeWidth / 2);
+        const nodes = [];
+        this.shadowRoot.querySelector("#racing-field").childNodes.forEach((node) => {
+          if (node.nodeName === "g") {
+            nodes.push(node);
+          }
+        });
+
+        this.runners.forEach(({ velocity }, index) => {
+          this.executeRunner(nodes[index], velocity, d);
+        });
+      }
+
+      reset() {
+        this.runners = this.runners.map((item) => ({
+          ...item,
+          velocity: this.randomVelocity()
+        }));
+
+        this.shadowRoot.querySelector("#racing-field").childNodes.forEach((node) => {
+          if (node.nodeName === "g") {
+            node.querySelector("circle").setAttribute("cx", this.heigthRect / 2);
+          }
+        });
+      }
+
+      executeRunner(node, velocity, d) {
+        let circle = node.querySelector("circle");
+        const initialDistance = parseFloat(circle.getAttribute("cx")) || 0;
+        const totalDistance = d - initialDistance;
+        const time = totalDistance / velocity;
+
+        if (totalDistance <= 0) return;
+
+        const startTime = performance.now();
+
+        const step = () => {
+          const elapsedTime = (performance.now() - startTime) / 1000;
+          const progress = Math.min(elapsedTime / time, 1);
+          const newDistance = initialDistance + totalDistance * progress;
+
+          circle.setAttribute("cx", newDistance);
+
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            console.log("Animación completada.", { velocity });
+          }
+        };
+        step();
+      }
+    }
+
+    // Registrar el Custom Element
+    customElements.define('my-race', MyRace);
+  </script>
+</body>
+
+</html>
