@@ -126,7 +126,7 @@
     function updateStars() {
       const styles = getComputedStyle($sky);
       const distance = parseFloat(styles.height) - aditionalY;
-      const rangeX = 500;
+      const rangeX = distance / 5;
       stars.forEach((data, id) => {
         const $currentStar = $(id);
         const { velocity, y, rotate } = data || {};
@@ -140,8 +140,6 @@
           if ((currentY + velocity) >= rangeX) {
             const currentOpacity = $currentStar.getAttribute("opacity")
             currentOpacity >= 0 ? $currentStar.setAttribute("opacity", Number(currentOpacity) - 0.001) : deleteStar($currentStar, id)
-
-
           }
         } else {
           deleteStar($currentStar, id)

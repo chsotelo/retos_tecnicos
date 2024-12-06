@@ -6,16 +6,155 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Graficos de barra</title>
 </head>
+<style>
+  svg {
+    width: 100%;
+    height: 100vh;
+  }
+</style>
 
 <body>
-  <svg id="chart" width="500" height="300" style="background: #f4f4f4;">
-    <!-- Ejes -->
-    <line x1="50" y1="250" x2="450" y2="250" stroke="black" />
-    <line x1="50" y1="250" x2="50" y2="50" stroke="black" />
+  <svg id="chart" width="1000" height="600" style="background: #f4f4f4;">
+    <line id="vertical" x1="50" y1="510" x2="50" y2="50" stroke="black" />
+    <line id="horizontal" x1="50" y1="510" x2="900" y2="510" stroke="black" />
+    <defs>
+      <rect id="stick" x="50" y="200" width="50" height="200" />
+      <text id="stick-text" x="70" y="250" style="fill: back;">%</text>
+    </defs>
   </svg>
+
   <script>
-    // Tu código aquí
+    const $ = id => document.getElementById(id);
+
+    const rects = ["red",
+      "blue",
+      "green",
+      "gray",
+      "orange"
+    ]
+    let currentIdHover = null;
+
+    const setAttributes = (node, obj) => {
+      Object.entries(obj).forEach(([key, value]) =>
+        node.setAttribute(key, value)
+      )
+    }
+
+    const $chart = $("chart");
+    const style = getComputedStyle($chart)
+    const $stick = $("stick");
+    const $stickText = $("stick-text");
+    const $horizontal = $("horizontal");
+    const $vertical = $("vertical");
+
+    let heightChart = style.height;
+    let widthChart = style.width;
+    const positionL = 50;
+    const positionB = 60;
+    const positionR = 80;
+    const positionT = 40;
+    let botton = Number(heightChart.replace("px", "")) - positionB;
+    let rigth = Number(widthChart.replace("px", "")) - positionR;
+
+    const positionH = {
+      y1: botton,
+      x1: positionL,
+      y2: botton,
+      x2: rigth
+    }
+
+    const positionV = {
+      y1: botton,
+      x1: positionL,
+      x2: positionL,
+      y2: positionT,
+    }
+
+    setAttributes($horizontal, positionH)
+    setAttributes($vertical, positionV)
+    const strokeWidthValue = 1;
+
+    let yMin = 0;
+    let xMax = 0;
+    rects.forEach((fill, index, array) => {
+      const propertiesStick = {
+        id: `stick-${index + 1}`,
+        x: index === 0 ? positionL + strokeWidthValue : (((rigth - positionL - positionR) / array.length) * index + positionL + strokeWidthValue),
+        y: (positionB * 2) - strokeWidthValue,
+        height: botton - (positionB * 2),
+        width: (rigth - positionL - positionR) / array.length - (strokeWidthValue),
+        fill: fill,
+        stroke: fill,
+        "stroke-width": strokeWidthValue,
+      }
+      console.log(propertiesStick.height);
+
+      yMin = propertiesStick.y;
+      const $cloneStick = $stick.cloneNode(true);
+      setAttributes($cloneStick, propertiesStick);
+      $chart.append($cloneStick)
+      let $cloneStickText = $stickText.cloneNode(true);
+      const positionText = {
+        id: `text-${propertiesStick.id}`,
+        x: propertiesStick.x + propertiesStick.width / 2,
+        y: (propertiesStick.height / 2) + propertiesStick.y
+      };
+      $cloneStickText.textContent = "100%";
+      setAttributes($cloneStickText, positionText)
+      $chart.append($cloneStickText)
+
+    })
+
+    $chart.addEventListener("mousemove", (e) => {
+      const x = e.clientX;
+      const y = e.clientY;
+
+      $chart.childNodes.forEach((node, index, arr) => {
+        if (node.nodeName === "rect") {
+          const id = node.getAttribute("id");
+          const style = getComputedStyle(node);
+
+          const currentY = node.getAttribute("y");
+          const currentX = node.getAttribute("x");
+          const widthNode = node.getAttribute("width")
+          const executeChanges = () => {
+            if (
+              positionL < x
+              && (rigth - positionR) > x
+              && Number(currentX) <= x
+              && Number(currentX) + Number(widthNode) >= x
+            ) {
+              if (botton > y && y > yMin) {
+                const rest = y - yMin;
+                const newAtributesStick = {
+                  y: Number(yMin) + rest,
+                  height: botton - y
+                }
+                setAttributes(node, newAtributesStick);
+                let $currentText = $(`text-${id}`)
+                const width = $currentText.getBBox().width;
+                console.log(width);
+
+                const newAttributesText = {
+                  y: newAtributesStick.height / 2 + newAtributesStick.y,
+
+                }
+                const totalHeigth = botton - (positionB * 2);
+                const height = node.getAttribute("height");
+                const percentage = Number(height) * 100 / totalHeigth
+                $currentText.textContent = `${percentage}`.slice(0, 4) + "%";
+                setAttributes($currentText, newAttributesText)
+              }
+            }
+          }
+
+          requestAnimationFrame(executeChanges)
+        }
+      });
+    })
+
   </script>
+
 </body>
 
 </html>
