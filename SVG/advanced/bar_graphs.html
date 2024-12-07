@@ -19,19 +19,34 @@
     <line id="horizontal" x1="50" y1="510" x2="900" y2="510" stroke="black" />
     <defs>
       <rect id="stick" x="50" y="200" width="50" height="200" />
-      <text id="stick-text" x="70" y="250" style="fill: back;">%</text>
+      <text id="stick-text" x="70" y="250" style="fill: back;">100%</text>
     </defs>
   </svg>
 
   <script>
     const $ = id => document.getElementById(id);
 
-    const rects = ["red",
-      "blue",
-      "green",
-      "gray",
-      "orange"
-    ]
+    const rectsRGBA = {
+      // red: "rgba(255, 0, 0, 0.5)",
+      // blue: "rgba(0, 0, 255, 0.5)",
+      // green: "rgba(0, 128, 0, 0.5)",
+      // gray: "rgba(128, 128, 128, 0.5)",
+      // orange: "rgba(255, 165, 0, 0.5)",
+      yellow: "rgba(255, 255, 0, 0.5)",
+      purple: "rgba(128, 0, 128, 0.5)",
+      pink: "rgba(255, 192, 203, 0.5)",
+      brown: "rgba(165, 42, 42, 0.5)",
+      cyan: "rgba(0, 255, 255, 0.5)",
+      magenta: "rgba(255, 0, 255, 0.5)",
+      lime: "rgba(0, 255, 0, 0.5)",
+      navy: "rgba(0, 0, 128, 0.5)",
+      teal: "rgba(0, 128, 128, 0.5)",
+      // olive: "rgba(128, 128, 0, 0.5)",
+      // maroon: "rgba(128, 0, 0, 0.5)",
+    };
+
+    const rects = Object.values(rectsRGBA);
+
     let currentIdHover = null;
 
     const setAttributes = (node, obj) => {
@@ -87,19 +102,20 @@
         stroke: fill,
         "stroke-width": strokeWidthValue,
       }
-      console.log(propertiesStick.height);
 
       yMin = propertiesStick.y;
       const $cloneStick = $stick.cloneNode(true);
       setAttributes($cloneStick, propertiesStick);
       $chart.append($cloneStick)
       let $cloneStickText = $stickText.cloneNode(true);
+      $cloneStickText.textContent = "100%";
+      const textWidth = $stickText.getBBox().width;
+
       const positionText = {
         id: `text-${propertiesStick.id}`,
-        x: propertiesStick.x + propertiesStick.width / 2,
+        x: propertiesStick.x + ((propertiesStick.width - textWidth) / 2),
         y: (propertiesStick.height / 2) + propertiesStick.y
       };
-      $cloneStickText.textContent = "100%";
       setAttributes($cloneStickText, positionText)
       $chart.append($cloneStickText)
 
@@ -132,9 +148,6 @@
                 }
                 setAttributes(node, newAtributesStick);
                 let $currentText = $(`text-${id}`)
-                const width = $currentText.getBBox().width;
-                console.log(width);
-
                 const newAttributesText = {
                   y: newAtributesStick.height / 2 + newAtributesStick.y,
 
