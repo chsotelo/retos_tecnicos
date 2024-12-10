@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pong!!</title>
+</head>
+<style>
+  svg {
+    min-height: calc(100vh - 50px);
+    width: 100%;
+  }
+
+  .button-container {
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+
+<body>
+  <svg id="space" style="background: linear-gradient(to bottom, #001D3D, #003566);">
+    <rect id="rect" height="10px" width="200px" fill="gray" />
+    <circle id="ball" r="10" fill="red" />
+    <text id="text-info" font-size="40">Pong!!</text>
+    <text id="counter" font-size="20">0</text>
+  </svg>
+  <div class="button-container">
+    <button id="button-start" onclick="moveBall()">Iniciar</button>
+    <button onclick="reset()">Reiniciar</button>
+  </div>
+
+</body>
+<script>
+  const $ = id => document.getElementById(id);
+  const tranformPxInNumber = (value) => {
+    return Number(value.replace("px", ""));
+  }
+  const setAttributes = (node, obj) => {
+    Object.entries(obj).forEach(([key, value]) => {
+      node.setAttribute(key, value);
+    })
+  }
+
+  const $space = $("space");
+  const $rect = $("rect")
+  const $ball = $("ball")
+  const $textInfo = $("text-info")
+  const $counter = $("counter")
+  const $buttonStart = $("button-start")
+
+  const spaceStyle = getComputedStyle($space);
+
+  const initialHeigthSpace = tranformPxInNumber(spaceStyle.height);
+  const initialWidthSpace = tranformPxInNumber(spaceStyle.width);
+
+
+
+  // console.log({ initialHeigthSpace, initialWidthSpace });
+  const heightRect = 10;
+  const widthRect = 200;
+  let counter = 0;
+
+  const rBall = 20;
+
+  const rectInitialProperties = {
+    height: heightRect,
+    width: widthRect,
+    x: (initialWidthSpace - widthRect) * 0.5,
+    y: initialHeigthSpace - heightRect,
+  }
+  setAttributes($rect, rectInitialProperties);
+
+
+
+  const ballInitialAtributes = {
+    r: rBall,
+    cx: (initialWidthSpace + rBall) * 0.5,
+    cy: rBall
+  }
+
+
+  const topLimit = { value: ballInitialAtributes.r, code: "T" };
+  const rigthLimit = { value: initialWidthSpace - ballInitialAtributes.r, code: "R" }
+  const bottonLimit = { value: rectInitialProperties.y - ballInitialAtributes.r, code: "B" };
+  const leftLimit = { value: ballInitialAtributes.r, code: "L" }
+
+  let isGameOver = false;
+  let IsStart = false;
+
+  const currentTextWidth = $textInfo.getBBox().width
+  const currentCounterWidth = $counter.getBBox().width
+  const currentTextHeigth = $textInfo.getBBox().height
+
+  const textInfoAttributes = {
+    x: (initialWidthSpace - currentTextWidth) * 0.5,
+    y: (initialHeigthSpace - currentTextHeigth) * 0.5,
+    fill: "white",
+  }
+  setAttributes($textInfo, textInfoAttributes)
+
+  const textCounterAttributes = {
+    x: (initialWidthSpace - currentCounterWidth) * 0.5,
+    y: initialHeigthSpace * 0.2 + ballInitialAtributes.r,
+    fill: "white",
+  }
+  setAttributes($counter, textCounterAttributes)
+
+
+  setAttributes($ball, ballInitialAtributes)
+
+  const eventTypes = {
+    rigth: "ArrowRight",
+    left: "ArrowLeft"
+  }
+
+  let stepRect = 5;
+  const setRectPosition = (eventType) => {
+    const x = tranformPxInNumber($rect.getAttribute("x"));
+    const width = tranformPxInNumber($rect.getAttribute("width"));
+    const maxWidth = initialWidthSpace - width;
+
+    if (0 <= x && x <= maxWidth) {
+      switch (eventType) {
+        case eventTypes.left:
+          $rect.setAttribute("x", x - stepRect > 0 ? x - stepRect : 0)
+          break;
+        case eventTypes.rigth:
+          $rect.setAttribute("x", x + stepRect < maxWidth ? x + stepRect : maxWidth)
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    setRectPosition(e.code)
+  })
+
+
+
+
+  const moveBall = () => {
+    let velocity = 2;
+    $textInfo.textContent = ""
+    $space.focus()
+    $buttonStart.setAttribute("disabled", true)
+    let vX = velocity;
+    let vY = velocity;
+    const step = () => {
+      const cy = tranformPxInNumber($ball.getAttribute("cy"));
+      const cx = tranformPxInNumber($ball.getAttribute("cx"));
+      const xRect = tranformPxInNumber($rect.getAttribute("x"));
+      const widthRect = tranformPxInNumber($rect.getAttribute("width"));
+
+      // cambia de signos al alcanzar o superar los limites
+      if (cx + vX >= rigthLimit.value || cx + vX <= leftLimit.value) {
+        vX = -vX;
+      }
+      if (cy + vY <= topLimit.value) {
+        vY = -vY;
+      }
+
+      //si toca el rectangulo aumentamos la velocidad en X y Y
+      if ((cy + vY >= bottonLimit.value) && xRect <= cx && cx <= xRect + widthRect) {
+        vY = -vY;
+        vX > 0 ? vX++ : vX--
+        vY > 0 ? vY++ : vY--
+        stepRect++;
+        counter++
+        $counter.textContent = counter;
+      }
+
+
+
+      const objNewAttributes = {
+        cx: cx + vX,
+        cy: cy + vY,
+      };
+      setAttributes($ball, objNewAttributes);
+
+      // Animar el siguiente paso
+      if (counter >= 10) {
+        $textInfo.textContent = "Ganaste!! Eres el más capito de todos!!"
+        const currentWithTextInfo = $textInfo.getBBox().width;
+        $textInfo.setAttribute("x", (initialWidthSpace - currentWithTextInfo) * 0.5)
+        return;
+      }
+
+      if (xRect <= cx && cx <= xRect + widthRect && cy >= bottonLimit.value + ballInitialAtributes.r * 2) {
+        isGameOver = true;
+        $textInfo.textContent = "Game Over!"
+        const currentWithTextInfo = $textInfo.getBBox().width;
+        $textInfo.setAttribute("x", (initialWidthSpace - currentWithTextInfo) * 0.5)
+
+      } else {
+
+        requestAnimationFrame(step);
+      }
+    };
+
+    requestAnimationFrame(step);
+  };
+
+
+  const reset = () => {
+    window.location.reload()
+  }
+
+
+</script>
+
+</html>
